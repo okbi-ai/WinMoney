@@ -1,74 +1,123 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>إنشاء حساب - WinMoney</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إنشاء حساب | WinMoney</title>
   <style>
     body {
       font-family: "Cairo", sans-serif;
-      background: linear-gradient(135deg, #1e90ff, #00bfff);
+      text-align: center;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .container {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 40px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 20px;
-      font-size: 1.8em;
-    }
+    h1 { margin-bottom: 15px; }
     input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      margin: 8px;
       border-radius: 8px;
-      outline: none;
-      font-size: 1em;
+      border: none;
+      font-size: 16px;
     }
-    .btn {
-      background: #fff;
-      color: #0078ff;
+    button {
+      padding: 10px 20px;
+      background: #ff9800;
       border: none;
-      padding: 12px;
       border-radius: 8px;
-      width: 100%;
+      color: white;
+      font-size: 16px;
       cursor: pointer;
-      font-weight: bold;
-      transition: 0.3s;
+      margin: 10px;
     }
-    .btn:hover {
-      background: #0078ff;
-      color: #fff;
-    }
-    a {
-      color: yellow;
-      text-decoration: none;
-    }
+    button:hover { background: #e68900; }
+    #message { margin-top: 15px; color: #ffcc00; }
+    #recaptcha-container { margin: 10px auto; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>إنشاء حساب جديد</h2>
-    <form>
-      <input type="text" placeholder="الاسم الكامل" required />
-      <input type="email" placeholder="البريد الإلكتروني" required />
-      <input type="password" placeholder="كلمة المرور" required />
-      <button class="btn" type="submit">تسجيل</button>
-    </form>
-    <p>لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a></p>
-    <p><a href="index.html">العودة للرئيسية</a></p>
-  </div>
+
+  <h1>إنشاء حساب جديد</h1>
+
+  <input type="email" id="email" placeholder="البريد الإلكتروني"><br>
+  <input type="password" id="password" placeholder="كلمة السر"><br>
+  <button id="registerEmail">تسجيل بالبريد</button>
+
+  <hr style="width:60%; margin:20px auto;">
+
+  <div id="recaptcha-container"></div>
+  <input type="tel" id="phone" placeholder="رقم الهاتف (+213...)"><br>
+  <button id="registerPhone">تسجيل برقم الهاتف</button>
+
+  <p id="message"></p>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // ✅ تسجيل بالبريد
+    document.getElementById("registerEmail").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          document.getElementById("message").innerText = "تم إنشاء الحساب بنجاح ✅";
+        })
+        .catch(error => {
+          document.getElementById("message").innerText = "خطأ: " + error.message;
+        });
+    });
+
+    // ✅ تفعيل reCAPTCHA للهاتف
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      'recaptcha-container',
+      {
+        size: 'normal',
+        callback: (response) => {
+          console.log("reCAPTCHA verified:", response);
+        }
+      },
+      auth
+    );
+
+    // ✅ تسجيل برقم الهاتف
+    document.getElementById("registerPhone").addEventListener("click", () => {
+      const phoneNumber = document.getElementById("phone").value;
+      const appVerifier = window.recaptchaVerifier;
+
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        .then(confirmationResult => {
+          const code = prompt("أدخل رمز التحقق المرسل إلى هاتفك:");
+          return confirmationResult.confirm(code);
+        })
+        .then(() => {
+          document.getElementById("message").innerText = "تم التسجيل بنجاح برقم الهاتف ✅";
+        })
+        .catch(error => {
+          document.getElementById("message").innerText = "خطأ: " + error.message;
+        });
+    });
+  </script>
+
 </body>
 </html>
