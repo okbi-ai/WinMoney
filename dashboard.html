@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم | WinMoney</title>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      color: white;
+      margin: 0;
+      text-align: center;
+      min-height: 100vh;
+    }
+    header {
+      background: #1f4068;
+      padding: 15px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .container {
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 15px auto;
+      width: 90%;
+      max-width: 400px;
+    }
+    button {
+      background: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #45a049; }
+    video {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    #points {
+      font-size: 24px;
+      color: #ffcc00;
+    }
+    #logout {
+      background: #ff4444;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>🏆 مرحبًا بك في WinMoney</header>
+  <div class="container">
+
+    <div class="card">
+      <h2>رصيدك الحالي</h2>
+      <p id="points">0 نقطة</p>
+    </div>
+
+    <div class="card">
+      <h2>🎥 شاهد الفيديو واربح</h2>
+      <video id="adVideo" controls>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        متصفحك لا يدعم عرض الفيديو.
+      </video>
+      <button id="watchBtn">مشاهدة للإكمال</button>
+      <p id="videoMsg"></p>
+    </div>
+
+    <div class="card">
+      <h2>🔗 رابط الإحالة</h2>
+      <input id="refLink" type="text" readonly style="width:90%;text-align:center;">
+      <button id="copyLink">نسخ الرابط</button>
+      <p>شارك الرابط مع أصدقائك لزيادة نقاطك!</p>
+    </div>
+
+    <button id="logout">تسجيل الخروج</button>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const pointsEl = document.getElementById("points");
+    const video = document.getElementById("adVideo");
+    const videoMsg = document.getElementById("videoMsg");
+    const refLink = document.getElementById("refLink");
+
+    let currentUser;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        refLink.value = `https://okbi-ai.github.io/WinMoney/register.html?ref=${user.uid}`;
+
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          pointsEl.innerText = docSnap.data().points + " نقطة";
+        } else {
+          await setDoc(docRef, { points: 0 });
+          pointsEl.innerText = "0 نقطة";
+        }
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    // ⏱️ كود المشاهدة الإجباري (5 دقائق)
+    document.getElementById("watchBtn").addEventListener("click", async () => {
+      videoMsg.innerText = "يجب مشاهدة الفيديو كاملًا لتحصل على النقاط...";
+      video.play();
+      const duration = 5 * 60 * 1000; // 5 دقائق
+
+      setTimeout(async () => {
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        const currentPoints = docSnap.data().points || 0;
+        const newPoints = currentPoints + 10; // +10 نقاط
+        await updateDoc(docRef, { points: newPoints });
+        pointsEl.innerText = newPoints + " نقطة";
+        videoMsg.innerText = "🎉 تهانينا! حصلت على 10 نقاط.";
+      }, duration);
+    });
+
+    // 🔗 نسخ رابط الإحالة
+    document.getElementById("copyLink").addEventListener("click", () => {
+      refLink.select();
+      document.execCommand("copy");
+      alert("تم نسخ الرابط ✅");
+    });
+
+    // 🚪 تسجيل الخروج
+    document.getElementById("logout").addEventListener("click", () => {
+      signOut(auth).then(() => window.location.href = "login.html");
+    });
+  </script>
+
+</body>
+</html>
