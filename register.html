@@ -34,7 +34,6 @@
       color: white;
       font-size: 16px;
       cursor: pointer;
-      margin: 10px;
     }
     button:hover { background: #e68900; }
     #message { margin-top: 15px; color: #ffcc00; }
@@ -74,7 +73,22 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // ✅ تسجيل بالبريد
+    // إعداد reCAPTCHA
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      'recaptcha-container',
+      {
+        size: 'normal',
+        callback: (response) => {
+          console.log("reCAPTCHA verified:", response);
+        },
+        'expired-callback': () => {
+          alert("انتهت صلاحية reCAPTCHA، أعد المحاولة");
+        }
+      },
+      auth
+    );
+
+    // تسجيل بالبريد
     document.getElementById("registerEmail").addEventListener("click", () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -84,23 +98,11 @@
           document.getElementById("message").innerText = "تم إنشاء الحساب بنجاح ✅";
         })
         .catch(error => {
-          document.getElementById("message").innerText = "خطأ: " + error.message;
+          document.getElementById("message").innerText = "⚠️ " + error.message;
         });
     });
 
-    // ✅ تفعيل reCAPTCHA للهاتف
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      'recaptcha-container',
-      {
-        size: 'normal',
-        callback: (response) => {
-          console.log("reCAPTCHA verified:", response);
-        }
-      },
-      auth
-    );
-
-    // ✅ تسجيل برقم الهاتف
+    // تسجيل برقم الهاتف
     document.getElementById("registerPhone").addEventListener("click", () => {
       const phoneNumber = document.getElementById("phone").value;
       const appVerifier = window.recaptchaVerifier;
@@ -114,7 +116,7 @@
           document.getElementById("message").innerText = "تم التسجيل بنجاح برقم الهاتف ✅";
         })
         .catch(error => {
-          document.getElementById("message").innerText = "خطأ: " + error.message;
+          document.getElementById("message").innerText = "⚠️ " + error.message;
         });
     });
   </script>
