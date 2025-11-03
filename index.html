@@ -41,16 +41,14 @@
 <body>
 
   <h1>مرحباً بك في <span style="color: yellow;">WinMoney 💰</span></h1>
-  <p>اشاهد الإعلانات، شارك الروابط، واربح المال بسهولة</p>
+  <p>شاهد الإعلانات، شارك الروابط، واربح المال بسهولة</p>
   <button onclick="window.location.href='login.html'">ابدأ الآن</button>
 
   <!-- Firebase SDKs -->
   <script type="module">
-    // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
 
-    // Your web app's Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBy5Ki9Gkp1Zga1rUlwwdslRs8WAP0KkI0",
       authDomain: "winmoney-site.firebaseapp.com",
@@ -61,7 +59,6 @@
       measurementId: "G-3EQFD81WP8"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
   </script>
