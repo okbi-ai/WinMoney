@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>جارٍ التحويل... | WinMoney</title>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background: linear-gradient(135deg, #000428, #004e92);
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .ad-box {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      width: 80%;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    h1 { margin-bottom: 10px; }
+    #timer { font-size: 22px; color: #ffeb3b; margin: 10px 0; }
+    button {
+      background: #00c851;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ad-box">
+    <h1>⏳ انتظر قليلاً...</h1>
+    <p>سيبدأ التحويل بعد عرض الإعلان.</p>
+    <div id="timer">10</div>
+    <p>💰 اربح النقاط عند مشاركة هذا الرابط!</p>
+    <button id="continueBtn">الانتقال الآن</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+
+    if (!id) {
+      document.body.innerHTML = "<h2>❌ رابط غير صالح</h2>";
+    } else {
+      const linkRef = doc(db, "links", id);
+      getDoc(linkRef).then(async (snapshot) => {
+        if (!snapshot.exists()) {
+          document.body.innerHTML = "<h2>⚠️ الرابط غير موجود</h2>";
+        } else {
+          const data = snapshot.data();
+          const longUrl = data.longUrl;
+
+          // عد تنازلي قبل الزر
+          let timeLeft = 10;
+          const timerEl = document.getElementById("timer");
+          const btn = document.getElementById("continueBtn");
+
+          const countdown = setInterval(() => {
+            timeLeft--;
+            timerEl.textContent = timeLeft;
+            if (timeLeft <= 0) {
+              clearInterval(countdown);
+              btn.style.display = "inline-block";
+            }
+          }, 1000);
+
+          btn.addEventListener("click", async () => {
+            await updateDoc(linkRef, {
+              visits: increment(1)
+            });
+            window.location.href = longUrl;
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
