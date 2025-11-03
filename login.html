@@ -1,73 +1,133 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تسجيل الدخول - WinMoney</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول | WinMoney 💰</title>
   <style>
     body {
       font-family: "Cairo", sans-serif;
-      background: linear-gradient(135deg, #1e90ff, #00bfff);
+      background: linear-gradient(to bottom, #007bff, #00bfff);
       color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
+      flex-direction: column;
     }
-    .container {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 40px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      width: 90%;
-      max-width: 400px;
+    h2 { margin-bottom: 20px; }
+    input {
+      margin: 8px;
+      padding: 10px;
+      width: 250px;
+      border-radius: 10px;
+      border: none;
       text-align: center;
     }
-    h2 {
-      margin-bottom: 20px;
-      font-size: 1.8em;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
+    button {
+      background-color: white;
+      color: #007bff;
       border: none;
-      border-radius: 8px;
-      outline: none;
-      font-size: 1em;
-    }
-    .btn {
-      background: #fff;
-      color: #0078ff;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      width: 100%;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin-top: 10px;
       cursor: pointer;
-      font-weight: bold;
       transition: 0.3s;
     }
-    .btn:hover {
-      background: #0078ff;
-      color: #fff;
+    button:hover {
+      background-color: #007bff;
+      color: white;
     }
-    a {
-      color: yellow;
-      text-decoration: none;
+    #googleBtn {
+      background-color: #db4437;
+      color: white;
+    }
+    #phoneLogin {
+      background-color: #34a853;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>تسجيل الدخول إلى WinMoney</h2>
-    <form>
-      <input type="email" placeholder="البريد الإلكتروني" required />
-      <input type="password" placeholder="كلمة المرور" required />
-      <button class="btn" type="submit">دخول</button>
-    </form>
-    <p>ليس لديك حساب؟ <a href="register.html">سجل الآن</a></p>
-    <p><a href="index.html">العودة للرئيسية</a></p>
-  </div>
+
+  <h2>تسجيل الدخول إلى WinMoney 💰</h2>
+
+  <input type="email" id="email" placeholder="البريد الإلكتروني"><br>
+  <input type="password" id="password" placeholder="كلمة المرور"><br>
+  <button id="loginBtn">تسجيل الدخول</button>
+  <button id="registerBtn">إنشاء حساب</button><br><br>
+
+  <button id="googleBtn">تسجيل عبر Google</button><br><br>
+
+  <div id="recaptcha-container"></div>
+  <input type="tel" id="phone" placeholder="رقم الهاتف (+213...)"><br>
+  <button id="phoneLogin">تسجيل برقم الهاتف</button>
+
+  <p id="message"></p>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBy5Ki9Gkp1Zga1rUlwwdslRs8WAP0KkI0",
+      authDomain: "winmoney-site.firebaseapp.com",
+      projectId: "winmoney-site",
+      storageBucket: "winmoney-site.appspot.com",
+      messagingSenderId: "846822709351",
+      appId: "1:846822709351:web:7ab6f220586e33d4601cc2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // تسجيل الدخول بالبريد
+    loginBtn.onclick = async () => {
+      try {
+        await signInWithEmailAndPassword(auth, email.value, password.value);
+        message.innerText = "تم تسجيل الدخول بنجاح ✅";
+      } catch (err) {
+        message.innerText = "⚠️ " + err.message;
+      }
+    };
+
+    // إنشاء حساب
+    registerBtn.onclick = async () => {
+      try {
+        await createUserWithEmailAndPassword(auth, email.value, password.value);
+        message.innerText = "تم إنشاء الحساب بنجاح ✅";
+      } catch (err) {
+        message.innerText = "⚠️ " + err.message;
+      }
+    };
+
+    // تسجيل عبر Google
+    googleBtn.onclick = async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        await signInWithPopup(auth, provider);
+        message.innerText = "تم تسجيل الدخول عبر Google ✅";
+      } catch (err) {
+        message.innerText = "⚠️ " + err.message;
+      }
+    };
+
+    // تسجيل برقم الهاتف
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {});
+    phoneLogin.onclick = async () => {
+      const phoneNumber = phone.value;
+      const appVerifier = window.recaptchaVerifier;
+      try {
+        const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+        const code = prompt("📱 أدخل رمز التحقق المرسل إلى هاتفك:");
+        await confirmation.confirm(code);
+        message.innerText = "تم تسجيل الدخول برقم الهاتف ✅";
+      } catch (err) {
+        message.innerText = "⚠️ " + err.message;
+      }
+    };
+  </script>
+
 </body>
 </html>
