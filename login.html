@@ -1,63 +1,64 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الدخول | WinMoney 💰</title>
+  <title>تسجيل الدخول | WinMoney</title>
   <style>
     body {
       font-family: "Cairo", sans-serif;
-      background: linear-gradient(to bottom, #007bff, #00bfff);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-    h2 { margin-bottom: 20px; }
-    input {
-      margin: 8px;
-      padding: 10px;
-      width: 250px;
-      border-radius: 10px;
-      border: none;
       text-align: center;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      margin: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
     }
     button {
-      background-color: white;
-      color: #007bff;
-      border: none;
       padding: 10px 20px;
-      border-radius: 10px;
-      margin-top: 10px;
+      background: #4CAF50;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
       cursor: pointer;
-      transition: 0.3s;
+      margin: 10px;
     }
     button:hover {
-      background-color: #007bff;
-      color: white;
+      background: #45a049;
     }
-    #googleBtn {
-      background-color: #db4437;
-      color: white;
+    #message {
+      margin-top: 15px;
+      color: #ffcc00;
     }
-    #phoneLogin {
-      background-color: #34a853;
-      color: white;
+    #recaptcha-container {
+      margin: 10px auto;
     }
   </style>
 </head>
 <body>
 
-  <h2>تسجيل الدخول إلى WinMoney 💰</h2>
+  <h1>تسجيل الدخول إلى WinMoney</h1>
 
   <input type="email" id="email" placeholder="البريد الإلكتروني"><br>
-  <input type="password" id="password" placeholder="كلمة المرور"><br>
-  <button id="loginBtn">تسجيل الدخول</button>
-  <button id="registerBtn">إنشاء حساب</button><br><br>
+  <input type="password" id="password" placeholder="كلمة السر"><br>
+  <button id="login">تسجيل الدخول</button>
 
-  <button id="googleBtn">تسجيل عبر Google</button><br><br>
+  <hr style="width:60%; margin:20px auto;">
 
   <div id="recaptcha-container"></div>
   <input type="tel" id="phone" placeholder="رقم الهاتف (+213...)"><br>
@@ -65,68 +66,70 @@
 
   <p id="message"></p>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+    // 🔥 إعداد Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyBy5Ki9Gkp1Zga1rUlwwdslRs8WAP0KkI0",
-      authDomain: "winmoney-site.firebaseapp.com",
-      projectId: "winmoney-site",
-      storageBucket: "winmoney-site.appspot.com",
-      messagingSenderId: "846822709351",
-      appId: "1:846822709351:web:7ab6f220586e33d4601cc2"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // تسجيل الدخول بالبريد
-    loginBtn.onclick = async () => {
-      try {
-        await signInWithEmailAndPassword(auth, email.value, password.value);
-        message.innerText = "تم تسجيل الدخول بنجاح ✅";
-      } catch (err) {
-        message.innerText = "⚠️ " + err.message;
-      }
-    };
+    // ✅ تسجيل الدخول بالبريد
+    document.getElementById("login").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-    // إنشاء حساب
-    registerBtn.onclick = async () => {
-      try {
-        await createUserWithEmailAndPassword(auth, email.value, password.value);
-        message.innerText = "تم إنشاء الحساب بنجاح ✅";
-      } catch (err) {
-        message.innerText = "⚠️ " + err.message;
-      }
-    };
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          document.getElementById("message").innerText = "تم تسجيل الدخول بنجاح ✅";
+        })
+        .catch(error => {
+          document.getElementById("message").innerText = "خطأ: " + error.message;
+        });
+    });
 
-    // تسجيل عبر Google
-    googleBtn.onclick = async () => {
-      const provider = new GoogleAuthProvider();
-      try {
-        await signInWithPopup(auth, provider);
-        message.innerText = "تم تسجيل الدخول عبر Google ✅";
-      } catch (err) {
-        message.innerText = "⚠️ " + err.message;
-      }
-    };
+    // ✅ تفعيل reCAPTCHA
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      'recaptcha-container',
+      {
+        size: 'normal',
+        callback: (response) => {
+          console.log("reCAPTCHA verified:", response);
+        },
+        'expired-callback': () => {
+          alert("انتهت صلاحية reCAPTCHA، أعد المحاولة");
+        }
+      },
+      auth
+    );
 
-    // تسجيل برقم الهاتف
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {});
-    phoneLogin.onclick = async () => {
-      const phoneNumber = phone.value;
+    // ✅ تسجيل الدخول برقم الهاتف
+    document.getElementById("phoneLogin").addEventListener("click", () => {
+      const phoneNumber = document.getElementById("phone").value;
       const appVerifier = window.recaptchaVerifier;
-      try {
-        const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-        const code = prompt("📱 أدخل رمز التحقق المرسل إلى هاتفك:");
-        await confirmation.confirm(code);
-        message.innerText = "تم تسجيل الدخول برقم الهاتف ✅";
-      } catch (err) {
-        message.innerText = "⚠️ " + err.message;
-      }
-    };
+
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        .then(confirmationResult => {
+          const code = prompt("أدخل رمز التحقق المرسل إلى هاتفك:");
+          return confirmationResult.confirm(code);
+        })
+        .then(() => {
+          document.getElementById("message").innerText = "تم تسجيل الدخول بنجاح برقم الهاتف ✅";
+        })
+        .catch(error => {
+          document.getElementById("message").innerText = "خطأ: " + error.message;
+        });
+    });
   </script>
 
 </body>
