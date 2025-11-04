@@ -2,66 +2,78 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WinMoney 💰</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Cairo", sans-serif;
-      background: linear-gradient(to bottom, #007bff, #00bfff);
-      color: white;
-      text-align: center;
-    }
-    h1 {
-      margin-top: 100px;
-      font-size: 40px;
-    }
-    p {
-      font-size: 18px;
-      margin-bottom: 30px;
-    }
-    button {
-      background-color: white;
-      color: #007bff;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 25px;
-      font-size: 18px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background-color: #007bff;
-      color: white;
-      border: 1px solid white;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>مرحباً بك في <span style="color: yellow;">WinMoney 💰</span></h1>
-  <p>شاهد الإعلانات، شارك الروابط، واربح المال بسهولة</p>
-  <button onclick="window.location.href='login.html'">ابدأ الآن</button>
+  <title>WinMoney تسجيل</title>
 
   <!-- Firebase SDKs -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
+    // --- هنا ضع كود تهيئة Firebase ---
     const firebaseConfig = {
-      apiKey: "AIzaSyBy5Ki9Gkp1Zga1rUlwwdslRs8WAP0KkI0",
+      apiKey: "AIzaSyBy5Ki9Gkp1Zga1rUIwwdsLR8WAP0KKi0I",
       authDomain: "winmoney-site.firebaseapp.com",
       projectId: "winmoney-site",
-      storageBucket: "winmoney-site.appspot.com",
+      storageBucket: "winmoney-site.firebasestorage.app",
       messagingSenderId: "846822709351",
-      appId: "1:846822709351:web:7ab6f220586e33d4601cc2",
-      measurementId: "G-3EQFD81WP8"
+      appId: "1:846822709351:web:6f12778e2fc608e2601cc2",
+      measurementId: "G-79M2BCQP4W"
     };
 
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
-  </script>
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
+    // --- دالة تسجيل مستخدم جديد ---
+    async function signupUser(email, password) {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await addDoc(collection(db, "users"), {
+          uid: user.uid,
+          email: email,
+          balance: 0,
+          createdAt: serverTimestamp()
+        });
+
+        alert("تم التسجيل بنجاح!");
+      } catch (error) {
+        console.error(error);
+        alert("خطأ: " + error.message);
+      }
+    }
+
+    // --- دالة تسجيل الدخول ---
+    async function loginUser(email, password) {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const q = query(collection(db, "users"), where("uid", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          alert("تم تسجيل الدخول! رصيدك الحالي: " + userData.balance);
+        });
+
+      } catch (error) {
+        console.error(error);
+        alert("خطأ: " + error.message);
+      }
+    }
+
+    // --- هذا هو المكان بالضبط لوضع اختبار تسجيل المستخدم الجديد ---
+    // يمكنك تغييره لاحقًا بفورم على الموقع
+    signupUser("test@example.com", "123456");
+
+  </script>
+</head>
+<body>
+  <h1>WinMoney</h1>
+  <p>تم إعداد تسجيل المستخدمين وتجربة Firestore!</p>
 </body>
 </html>
